@@ -47,7 +47,7 @@ def main():
         raise GroqClientError("API key not found in config.txt. Please make sure the file exists and contains the API key.")     
     # Set Streamlit layout to wide
     st.set_page_config(layout="wide")     
-    user_input = st.text_input("Enter your message here:", key="user_input")     
+    user_input = st.text_area("Enter your message here:", key="user_input")     
     if user_input:          
         # Send user input to Groq API and display response
         try:
