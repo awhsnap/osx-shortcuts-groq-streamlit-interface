@@ -1,0 +1,2 @@
+🎙️ Narrate (WIP) - Script writing, scenes, summary, narrating.
+act with your knowledge of script narrating and splitting scenes. after lets display the total scenes, 1 unique keyword per scene, title of scene, and 2 sentence summary in a table. display the lines for the narrator

@@ -19,11 +19,26 @@ def read_api_key():
             api_key = config['API']['GROQ_API_KEY']     
     return api_key 
 
+def list_templates():
+    templates_dir = "templates"
+    templates = []
+    for f in os.scandir(templates_dir):
+        if f.is_file():
+            with open(f.path, "r") as template_file:
+                template_content = template_file.readline().strip() # Read only the first line
+                templates.append((template_content, f.name))
+    return templates
+
+def read_template(template_name):
+    template_path = os.path.join("templates", template_name)
+    with open(template_path, "r") as template_file:
+        template_content = template_file.readlines() # Read lines instead of reading the whole content
+    # Strip the first line from the context
+    return '\n'.join(template_content[1:]) if template_content else ''
+
 def send_chat_message(message_content, api_key):
-    # Initialize the Groq client with the API key
     client = Groq(api_key=api_key)     
     try:
-        # Send a chat completion request
         chat_completion = client.chat.completions.create(
             messages=[
                 {
@@ -41,21 +56,25 @@ def send_chat_message(message_content, api_key):
         raise GroqClientError(f"Groq API Error: {str(e)}") 
 
 def main():
-    # Read API key from config.txt
     api_key = read_api_key()     
     if not api_key:
         raise GroqClientError("API key not found in config.txt. Please make sure the file exists and contains the API key.")     
-    # Set Streamlit layout to wide
     st.set_page_config(layout="wide")     
-    user_input = st.text_area("Enter your message here:", key="user_input")     
-    if user_input:          
-        # Send user input to Groq API and display response
-        try:
-            response = send_chat_message(user_input, api_key)
-            st.write("Response:")
-            st.write(response)
-        except GroqClientError as e:
-            st.error(f"Error: {e.message}") 
+    templates = list_templates()
+    selected_template = st.selectbox("Select a template:", [t[0] for t in templates], key="selected_template")
+    if selected_template is not None:          
+        selected_template_name = [t[1] for t in templates if t[0] == selected_template][0]
+        user_input = st.text_area("Enter your message here:", key="user_input")     
+        if user_input:          
+            try:
+                template_content = read_template(selected_template_name)
+                response = send_chat_message(template_content + "\n" + user_input, api_key)
+                st.write("Response:")
+                st.write(response)
+            except GroqClientError as e:
+                st.error(f"Error: {e.message}") 
+    else:
+        st.warning("Please select a template before sending your message.")
 
 if __name__ == "__main__":
     main()
